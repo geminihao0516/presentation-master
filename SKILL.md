@@ -88,6 +88,25 @@ ELSE:
 **重要：不要詢問使用者選擇模式。** 自動偵測後直接告知：
 > 「偵測到 [X] 模式環境。開始製作簡報。」
 
+**升級建議（偵測到可升級時才顯示）：**
+
+```
+IF Lite 模式 AND has_node（有 Node.js 但缺 pptxgenjs）:
+  → 提示：「偵測到 Node.js，只需執行 npm install -g pptxgenjs 即可升級為 Standard 模式（輸出 .pptx）。要現在安裝嗎？」
+
+IF Standard 模式 AND has_python（有 Python 但缺 notebooklm）:
+  → 提示：「偵測到 Python，安裝 notebooklm-py 可升級為 Full 模式（深度研究）。要現在安裝嗎？」
+
+IF no_gemini_api AND (has_nanobanana OR 使用者提到 Gemini Pro):
+  → 提示：「你是 Gemini Pro 用戶嗎？設定 GEMINI_API_KEY 可啟用 NanoBanana AI 圖片生成。
+    不設定也沒關係 — 技能會自動生成 Gemini 提示詞，你可以手動貼到 gemini.google.com 免費生成圖片。」
+
+IF 使用者首次使用（無 output/ 目錄記錄）:
+  → 額外提示：「提示：你可以隨時說『換個風格』更換視覺風格，或說『幫我生成 Gemini 圖片提示詞』取得免費 AI 圖片。」
+```
+
+**原則：升級建議只在第一次偵測到時顯示，不重複提醒。使用者回答「不用」後直接繼續。**
+
 ---
 
 ## Step 1: 收集輸入
