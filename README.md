@@ -59,6 +59,42 @@ bash install.sh --standard
 bash install.sh --full
 ```
 
+### 驗證安裝
+
+安裝完成後，隨時可以用 `--verify` 確認狀態：
+
+```bash
+bash install.sh --verify
+```
+
+範例輸出：
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Presentation Master — 安裝狀態驗證
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  版本：1.1.0
+
+  ✓ 核心技能 (SKILL.md)
+  ✓ Node.js v22.x.x
+  ✓ pptxgenjs（.pptx 生成可用）
+  ✓ sharp（圖片處理可用）
+  ○ playwright 未安裝（可選）
+  ✓ Python 3.x.x
+  ○ NotebookLM 未安裝
+  ○ NanoBanana PPT 未安裝（可用 Gemini 提示詞替代）
+  ✓ 網路連線正常
+  ○ Gemini API Key 未設定（NanoBanana 需要，Gemini 提示詞不需要）
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  結果：5 通過 | 5 可選 | 0 失敗
+  可用模式：Standard
+
+  安裝正常！在 Claude Code 中說「幫我做一份簡報」即可使用。
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
 ## 使用範例
 
 ### 基本用法
@@ -105,6 +141,27 @@ bash install.sh --full
 4. 下載圖片，插入到 .pptx 中
 
 **完全免費**，使用你的 Gemini Pro 額度。
+
+## 多語言支援
+
+簡報內容和 Gemini 提示詞可自動切換語言：
+
+| 語言 | 代碼 | 用法範例 |
+|------|------|---------|
+| 繁體中文 | zh-TW | 「幫我做一份簡報」（預設） |
+| 簡體中文 | zh-CN | 「帮我做一份简报，用简体中文」 |
+| English | en | "Make a presentation in English" |
+
+不指定時預設使用繁體中文。也支援其他語言，Claude 會自動適配。
+
+## 離線使用
+
+沒有網路時（如飛機上、斷網環境）：
+
+- 仍可使用 **本地文件**（PDF、Word 等）和 **主題關鍵字** 作為輸入
+- YouTube URL 和網頁 URL 會自動跳過，不會報錯
+- Gemini 提示詞照常生成（上網後再貼到 Gemini 使用）
+- 安裝驗證會顯示網路狀態
 
 ## 內建 5 種視覺風格
 
@@ -164,6 +221,12 @@ output/presentation-{日期時間}/
 | Arch Linux | 完整支援 | pacman 安裝依賴 |
 | Windows (WSL) | 完整支援 | 透過 WSL2 |
 | Windows (Git Bash) | 基本支援 | Lite 模式 |
+
+## 版本
+
+目前版本：**1.1.0**（2026-03-17）
+
+詳細變更紀錄請見 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 授權
 

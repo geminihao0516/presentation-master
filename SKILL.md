@@ -12,7 +12,7 @@ description: >
 license: MIT
 metadata:
   author: Hao
-  version: 1.0.0
+  version: 1.1.0
   category: productivity
   language: zh-TW
 ---
@@ -55,6 +55,21 @@ CHECK_4: ls ~/.claude/skills/ppt-generator/generate_ppt.py 2>/dev/null
 CHECK_5: echo $GEMINI_API_KEY
   → 有值 = has_gemini_api
   → 空 = no_gemini_api
+
+CHECK_6: ping -c 1 -W 3 google.com 2>/dev/null
+  → 成功 = has_network
+  → 失敗 = no_network（離線模式）
+```
+
+**離線模式限制：**
+
+```
+IF no_network:
+  → 告知使用者：「目前無網路連線，僅支援本地文件和主題關鍵字作為輸入。」
+  → YouTube URL → 無法使用，跳過
+  → 網頁 URL → 無法使用，跳過
+  → NotebookLM → 無法使用，降級為 Claude 直接分析
+  → 仍可使用：本地文件、主題關鍵字、Gemini 提示詞生成
 ```
 
 **模式選擇邏輯：**
@@ -90,6 +105,11 @@ ELSE:
 ├─ 投影片數量：預設 10 頁
 ├─ 目標受眾：預設「一般聽眾」
 ├─ 語言：預設繁體中文
+│   支援語言：
+│   - zh-TW 繁體中文（預設）
+│   - zh-CN 簡體中文
+│   - en 英文
+│   - 其他語言（Claude 會自動適配）
 └─ 視覺風格：預設「極簡白」
    可選風格（5 種）：
    1. 漸變玻璃態 — 科技/商務（深色漸層 + 毛玻璃）
@@ -429,7 +449,9 @@ slides_plan.json 包含引用來源和更深入的內容。
 - 每頁的提示詞必須保持風格一致（相同的背景、色調、字體描述）
 - 文字內容必須明確寫出，不留佔位符
 - 包含具體的像素尺寸和顏色 hex 碼
-- 指明繁體中文（或使用者指定的語言）
+- 指明使用者選擇的語言（zh-TW/zh-CN/en 等）
+- 英文簡報時，提示詞也用英文撰寫
+- 簡體中文簡報時，提示詞和投影片內容用簡體中文
 
 ---
 
@@ -498,6 +520,9 @@ slides_plan.json 包含引用來源和更深入的內容。
 | NanoBanana 未安裝 | 升級提示中隱藏 NanoBanana 選項 |
 | 來源處理失敗 | 跳過失敗來源，繼續處理其他，記錄在 research_notes.md |
 | WebFetch 失敗 | 請使用者手動貼上網頁內容 |
+| 無網路連線 | 限制為本地文件 + 主題關鍵字輸入，跳過 URL 來源，告知使用者 |
+| 離線 + YouTube URL | 提示使用者連線後重試，或手動提供影片重點 |
+| 離線 + 網頁 URL | 提示使用者連線後重試，或手動貼上內容 |
 
 ---
 

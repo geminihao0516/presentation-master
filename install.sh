@@ -336,6 +336,142 @@ verify_installation() {
   echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
+# 獨立驗證（--verify 專用）
+verify_only() {
+  echo ""
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${CYAN}  Presentation Master — 安裝狀態驗證${NC}"
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo ""
+
+  PASS=0
+  WARN=0
+  FAIL=0
+  AVAILABLE_MODE="Lite"
+
+  # 版本資訊
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -f "$SCRIPT_DIR/VERSION" ]; then
+    echo -e "  版本：$(cat "$SCRIPT_DIR/VERSION")"
+  fi
+  echo ""
+
+  # 1. 核心技能
+  if [ -f "$SKILL_DIR/SKILL.md" ]; then
+    echo -e "${GREEN}  ✓ 核心技能 (SKILL.md)${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${RED}  ✗ 核心技能未安裝${NC}"
+    echo -e "${RED}    修復：bash install.sh${NC}"
+    FAIL=$((FAIL + 1))
+  fi
+
+  # 2. Node.js
+  if command -v node &>/dev/null; then
+    echo -e "${GREEN}  ✓ Node.js $(node --version)${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ Node.js 未安裝（Standard 模式需要）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 3. pptxgenjs
+  if npm list -g pptxgenjs 2>/dev/null | grep -q pptxgenjs || \
+     node -e "require('pptxgenjs')" 2>/dev/null; then
+    echo -e "${GREEN}  ✓ pptxgenjs（.pptx 生成可用）${NC}"
+    AVAILABLE_MODE="Standard"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ pptxgenjs 未安裝（無 .pptx 輸出）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 4. sharp
+  if npm list -g sharp 2>/dev/null | grep -q sharp || \
+     node -e "require('sharp')" 2>/dev/null; then
+    echo -e "${GREEN}  ✓ sharp（圖片處理可用）${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ sharp 未安裝（可選）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 5. playwright
+  if npm list -g playwright 2>/dev/null | grep -q playwright || \
+     node -e "require('playwright')" 2>/dev/null; then
+    echo -e "${GREEN}  ✓ playwright（HTML 渲染可用）${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ playwright 未安裝（可選）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 6. Python
+  if command -v python3 &>/dev/null; then
+    echo -e "${GREEN}  ✓ Python $(python3 --version 2>&1 | awk '{print $2}')${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ Python 未安裝（Full 模式需要）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 7. NotebookLM
+  if command -v notebooklm &>/dev/null; then
+    if notebooklm login --check 2>/dev/null; then
+      echo -e "${GREEN}  ✓ NotebookLM（已認證）${NC}"
+      if [ "$AVAILABLE_MODE" = "Standard" ]; then
+        AVAILABLE_MODE="Full"
+      fi
+      PASS=$((PASS + 1))
+    else
+      echo -e "${YELLOW}  ○ NotebookLM（未認證，執行 notebooklm login）${NC}"
+      WARN=$((WARN + 1))
+    fi
+  else
+    echo -e "${YELLOW}  ○ NotebookLM 未安裝${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 8. NanoBanana
+  if [ -f "$PPT_GEN_DIR/generate_ppt.py" ]; then
+    echo -e "${GREEN}  ✓ NanoBanana PPT（AI 圖片生成可用）${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ NanoBanana PPT 未安裝（可用 Gemini 提示詞替代）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 9. 網路連線
+  if ping -c 1 -W 3 google.com &>/dev/null 2>&1; then
+    echo -e "${GREEN}  ✓ 網路連線正常${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ⚠ 無網路連線（僅限離線模式：本地文件 + 主題關鍵字）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  # 10. Gemini API Key
+  if [ -n "$GEMINI_API_KEY" ]; then
+    echo -e "${GREEN}  ✓ Gemini API Key 已設定${NC}"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${YELLOW}  ○ Gemini API Key 未設定（NanoBanana 需要，Gemini 提示詞不需要）${NC}"
+    WARN=$((WARN + 1))
+  fi
+
+  echo ""
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "  結果：${GREEN}${PASS} 通過${NC} | ${YELLOW}${WARN} 可選${NC} | ${RED}${FAIL} 失敗${NC}"
+  echo -e "  可用模式：${GREEN}${AVAILABLE_MODE}${NC}"
+  echo ""
+  if [ "$FAIL" -eq 0 ]; then
+    echo -e "  ${GREEN}安裝正常！在 Claude Code 中說「幫我做一份簡報」即可使用。${NC}"
+  else
+    echo -e "  ${RED}有元件安裝失敗，請執行 bash install.sh 修復。${NC}"
+  fi
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+}
+
 # 主流程
 main() {
   print_header
@@ -354,12 +490,17 @@ main() {
       --lite)     INSTALL_MODE="lite" ;;
       --standard) INSTALL_MODE="standard" ;;
       --full)     INSTALL_MODE="full" ;;
+      --verify)
+        verify_only
+        exit 0
+        ;;
       --help|-h)
-        echo "用法：bash install.sh [--lite | --standard | --full]"
+        echo "用法：bash install.sh [--lite | --standard | --full | --verify]"
         echo ""
         echo "  --lite      只安裝核心技能（零依賴）"
         echo "  --standard  安裝核心 + .pptx 依賴"
         echo "  --full      安裝所有功能（含 NanoBanana）"
+        echo "  --verify    驗證安裝狀態（不安裝任何東西）"
         echo ""
         echo "  不指定參數時自動偵測環境並安裝可用的功能。"
         exit 0
